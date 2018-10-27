@@ -75,14 +75,14 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                     .accessTokenValiditySeconds(accessTokenValiditySeconds)
                     .refreshTokenValiditySeconds(refreshTokenValiditySeconds)
                     .and()
-                .withClient("trusted-app")
+                .withClient("democrud")
                     .authorizedGrantTypes("client_credentials", "password", "refresh_token")
                     .authorities("ROLE_TRUSTED_CLIENT")
                     .scopes("read", "write")
                     .resourceIds(resourceId)
                     .accessTokenValiditySeconds(accessTokenValiditySeconds)
                     .refreshTokenValiditySeconds(refreshTokenValiditySeconds)
-                    .secret("secret")
+                    .secret("123password")
                     .and()
                 .withClient("register-app")
                     .authorizedGrantTypes("client_credentials")
@@ -123,6 +123,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Primary
     public DefaultTokenServices tokenServices() {
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        defaultTokenServices.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
         defaultTokenServices.setTokenEnhancer(accessTokenConverter());
