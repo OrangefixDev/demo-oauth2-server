@@ -1,4 +1,4 @@
-package com.gary.demo.oauth2.models;
+package com.gary.demo.oauth2.entity;
 
 
 public class RestResponse {

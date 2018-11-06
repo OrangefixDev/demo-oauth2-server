@@ -1,6 +1,7 @@
 package com.gary.demo.oauth2.security;
 
 import com.gary.demo.oauth2.services.AccountService;
+import com.gary.demo.oauth2.services.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
@@ -29,22 +31,27 @@ import java.security.cert.CertificateException;
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
-    @Value("${security.oauth2.resource.id}")
+    @Value("${oauth2.server.security.resource.id}")
     private String resourceId;
 
-    @Value("${access_token.validity_period}")
+    @Value("${oauth2.server.security.access_token.validity_period}")
     private int accessTokenValiditySeconds;
 
-    @Value("${refresh_token.validity_period}")
+    @Value("${oauth2.server.security.refresh_token.validity_period}")
     private int refreshTokenValiditySeconds;
 
     @Autowired
     private AuthenticationManager authenticationManager;
 
+
     @Bean
     public UserDetailsService userDetailsService(){
         return new AccountService();
     }
+
+    @Bean
+    public ClientDetailsService clientDetailsService(){ return new ClientService(); }
+
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
@@ -67,7 +74,8 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
-        clients.inMemory()
+        clients.withClientDetails(clientDetailsService());
+        /*clients.inMemory()
                 .withClient("normal-app")
                     .authorizedGrantTypes("authorization_code", "implicit")
                     .authorities("ROLE_CLIENT")
@@ -85,7 +93,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                     .refreshTokenValiditySeconds(refreshTokenValiditySeconds)
                     .secret("123password")
                     .and()
-                .withClient("register-app")
+                .withClient("registerUser-app")
                     .authorizedGrantTypes("client_credentials")
                     .authorities("ROLE_REGISTER")
                     .scopes("read")
@@ -98,6 +106,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                     .scopes("read", "trust")
                     .resourceIds("oauth2-resource")
                     .redirectUris("http://anywhere?key=value");
+                    */
     }
 
     @Bean
@@ -125,6 +134,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     public DefaultTokenServices tokenServices() {
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
+        defaultTokenServices.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds);
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
         defaultTokenServices.setTokenEnhancer(accessTokenConverter());

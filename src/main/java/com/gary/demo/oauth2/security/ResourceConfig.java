@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 @EnableGlobalMethodSecurity(prePostEnabled=true)
 public class ResourceConfig extends ResourceServerConfigurerAdapter {
 
-    @Value("${security.oauth2.resource.id}")
+    @Value("${oauth2.server.security.resource.id}")
     private String resourceId;
 
     @Autowired
@@ -40,13 +40,17 @@ public class ResourceConfig extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.requestMatcher(new OAuthRequestedMatcher())
-                .anonymous().disable()
+        http
+                //.requestMatcher(new OAuthRequestedMatcher())
+                //.anonymous().disable()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .antMatchers("/api/hello").access("hasAnyRole('USER')")
-                .antMatchers("/api/me").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/api/register").hasAuthority("ROLE_REGISTER");
+                .antMatchers(HttpMethod.DELETE).access("hasAnyRole('ADMIN')")
+                .antMatchers("/v1/auth/user").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/v1/auth/user/register").permitAll()
+                .antMatchers("/v1/auth/client").hasRole("ADMIN")
+                .antMatchers("/v1/auth/client/register").hasRole("ADMIN");
+
     }
 
     private static class OAuthRequestedMatcher implements RequestMatcher {
