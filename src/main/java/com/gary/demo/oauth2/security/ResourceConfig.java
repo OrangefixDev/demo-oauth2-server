@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 @EnableGlobalMethodSecurity(prePostEnabled=true)
 public class ResourceConfig extends ResourceServerConfigurerAdapter {
 
-    @Value("${security.oauth2.resource.id}")
+    @Value("${oauth2.server.security.resource.id}")
     private String resourceId;
 
     @Autowired
@@ -44,8 +44,7 @@ public class ResourceConfig extends ResourceServerConfigurerAdapter {
                 .anonymous().disable()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .antMatchers("/api/hello").access("hasAnyRole('USER')")
-                .antMatchers("/api/me").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/api/user").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/api/register").hasAuthority("ROLE_REGISTER");
     }
 

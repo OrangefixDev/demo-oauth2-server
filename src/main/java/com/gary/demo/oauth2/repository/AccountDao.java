@@ -1,7 +1,7 @@
-package com.gary.demo.oauth2.dao;
+package com.gary.demo.oauth2.repository;
 
 
-import com.gary.demo.oauth2.models.Account;
+import com.gary.demo.oauth2.entity.Account;
 import org.springframework.data.repository.Repository;
 
 import java.util.Collection;

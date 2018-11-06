@@ -1,0 +1,4 @@
+create table account (id bigint not null auto_increment, account_non_expired bit not null, account_non_locked bit not null, credentials_non_expired bit not null, email varchar(255), enabled bit not null, first_name varchar(255), last_name varchar(255), password varchar(255), username varchar(255), primary key (id))
+create table account_roles (account_id bigint not null, roles varchar(255))
+create table client (client_id varchar(255) not null, access_token_validity_seconds integer not null, additional_information varchar(255), authorities varchar(255), authorized_grant_types varchar(255) not null, auto_approve_scope varchar(255), client_secret varchar(255), refresh_token_validity_seconds integer not null, registered_redirect_uri varchar(255), resource_ids varchar(255), scope varchar(255), primary key (client_id))
+alter table account_roles add constraint FKtp61eta5i06bug3w1qr6286uf foreign key (account_id) references account (id)
