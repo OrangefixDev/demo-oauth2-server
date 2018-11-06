@@ -43,7 +43,7 @@ public class Oauth2Controller {
         try {
 
             return new ResponseEntity<Object>(
-                    accountService.register(account), HttpStatus.OK);
+                    accountService.registerUser(account), HttpStatus.OK);
         } catch (AccountException e) {
             e.printStackTrace();
             return new ResponseEntity<RestError>(new RestError(e.getMessage()),HttpStatus.BAD_REQUEST );

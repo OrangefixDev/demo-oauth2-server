@@ -46,7 +46,7 @@ public class AccountService implements UserDetailsService {
 
     }
 
-    public com.gary.demo.oauth2.model.Account register(com.gary.demo.oauth2.model.Account accountDto) throws AccountException {
+    public com.gary.demo.oauth2.model.Account registerUser(com.gary.demo.oauth2.model.Account accountDto) throws AccountException {
         if (accountDao.countByUsername(accountDto.getUsername() ) == 0) {
             com.gary.demo.oauth2.entity.Account accountEntity = convertToAccountEntity(accountDto);
             accountEntity.setPassword(passwordEncoder.encode(StringUtils.isEmpty(accountDto.getPassword())?defaultPassword:accountDto.getPassword()));
@@ -58,10 +58,27 @@ public class AccountService implements UserDetailsService {
         }
     }
 
-    public com.gary.demo.oauth2.model.Account register(com.gary.demo.oauth2.entity.Account accountEntity) throws AccountException {
+    public com.gary.demo.oauth2.model.Account registerAdmin(com.gary.demo.oauth2.model.Account accountDto) throws AccountException {
+        if (accountDao.countByUsername(accountDto.getUsername() ) == 0) {
+            com.gary.demo.oauth2.entity.Account accountEntity = convertToAccountEntity(accountDto);
+            accountEntity.setPassword(passwordEncoder.encode(StringUtils.isEmpty(accountDto.getPassword())?defaultPassword:accountDto.getPassword()));
+            //grant user access by default
+            accountEntity.grantAuthority("ROLE_ADMIN");
+            return convertToAccountDto(accountDao.save(accountEntity));
+        } else {
+            throw new AccountException(String.format("Username[%s] already taken.", accountDto.getUsername()));
+        }
+    }
+    public com.gary.demo.oauth2.model.Account registerUser(com.gary.demo.oauth2.entity.Account accountEntity) throws AccountException {
         com.gary.demo.oauth2.model.Account accountDto = convertToAccountDto(accountEntity);
         accountDto.setPassword(accountEntity.getPassword());
-        return register(accountDto);
+        return registerUser(accountDto);
+    }
+
+    public com.gary.demo.oauth2.model.Account registerAdmin(com.gary.demo.oauth2.entity.Account accountEntity) throws AccountException {
+        com.gary.demo.oauth2.model.Account accountDto = convertToAccountDto(accountEntity);
+        accountDto.setPassword(accountEntity.getPassword());
+        return registerAdmin(accountDto);
     }
 
     @Transactional

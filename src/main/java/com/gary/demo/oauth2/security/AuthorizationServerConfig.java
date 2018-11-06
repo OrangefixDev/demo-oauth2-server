@@ -93,7 +93,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                     .refreshTokenValiditySeconds(refreshTokenValiditySeconds)
                     .secret("123password")
                     .and()
-                .withClient("register-app")
+                .withClient("registerUser-app")
                     .authorizedGrantTypes("client_credentials")
                     .authorities("ROLE_REGISTER")
                     .scopes("read")
@@ -134,6 +134,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     public DefaultTokenServices tokenServices() {
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setAccessTokenValiditySeconds(accessTokenValiditySeconds);
+        defaultTokenServices.setRefreshTokenValiditySeconds(refreshTokenValiditySeconds);
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
         defaultTokenServices.setTokenEnhancer(accessTokenConverter());
