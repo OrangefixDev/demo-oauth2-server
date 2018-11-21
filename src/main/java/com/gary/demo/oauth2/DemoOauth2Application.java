@@ -9,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 @SpringBootApplication
+@EnableMongoRepositories(basePackages = { "com.gary.demo.oauth2.repository"})
 public class DemoOauth2Application {
 
 	public static void main(String[] args) {

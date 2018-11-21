@@ -3,8 +3,9 @@ package com.gary.demo.oauth2.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 public class Account {
-    private Long id;
 
     private String username;
     private String password;
@@ -12,6 +13,7 @@ public class Account {
     private String firstName;
     private String lastName;
     private String email;
+    private List<String> roles;
 
     @JsonCreator
     public Account(){
@@ -19,26 +21,19 @@ public class Account {
     }
 
     @JsonCreator
-    public Account(@JsonProperty("id")Long id,
+    public Account(
                    @JsonProperty("username")String username,
                    @JsonProperty("password")String password,
                    @JsonProperty("firstName")String firstName,
                    @JsonProperty("lastName")String lastName,
-                   @JsonProperty("email")String email) {
-        this.id = id;
+                   @JsonProperty("email")String email,
+                   @JsonProperty("roles") List<String> roles) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+        this.roles = roles;
     }
 
     public String getUsername() {
@@ -81,15 +76,23 @@ public class Account {
         this.email = email;
     }
 
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Account{");
-        sb.append("id=").append(id);
-        sb.append(", username='").append(username).append('\'');
+        sb.append("username='").append(username).append('\'');
         sb.append(", password='").append(password).append('\'');
         sb.append(", firstName='").append(firstName).append('\'');
         sb.append(", lastName='").append(lastName).append('\'');
         sb.append(", email='").append(email).append('\'');
+        sb.append(", roles=").append(roles);
         sb.append('}');
         return sb.toString();
     }

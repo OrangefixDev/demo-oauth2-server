@@ -1,5 +1,6 @@
 package com.gary.demo.oauth2.entity;
 
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,13 +9,11 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Document(collection = "account")
 public class Account implements UserDetails {
 
-    @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private Long id;
 
+    @Id
     private String username;
     private String password;
 
@@ -22,7 +21,7 @@ public class Account implements UserDetails {
     private String lastName;
     private String email;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    //@ElementCollection(fetch = FetchType.EAGER)
     private List<String> roles;
 
     private boolean accountNonExpired, accountNonLocked, credentialsNonExpired, enabled;
@@ -80,14 +79,6 @@ public class Account implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public void setAccountNonExpired(boolean accountNonExpired) {

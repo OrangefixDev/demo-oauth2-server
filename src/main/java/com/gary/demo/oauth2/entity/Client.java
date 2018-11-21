@@ -1,6 +1,7 @@
 package com.gary.demo.oauth2.entity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.util.StringUtils;
@@ -11,33 +12,33 @@ import javax.persistence.Id;
 import java.io.IOException;
 import java.util.*;
 
-@Entity
+@Document(collection = "client")
 public class Client implements ClientDetails {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Id
-    @Column(nullable = false, unique = true)
+    //@Column(nullable = false, unique = true)
     private String clientId;
-    @Column
+    //@Column
     private String resourceIds;
-    @Column
+    //@Column
     private String clientSecret;
-    @Column
+    //@Column
     private String scope;
-    @Column(nullable = false)
+   // @Column(nullable = false)
     private String authorizedGrantTypes;
-    @Column
+    //@Column
     private String registeredRedirectUri;
-    @Column
+    //@Column
     private String authorities;
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private Integer accessTokenValiditySeconds;
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private Integer refreshTokenValiditySeconds;
-    @Column
+    //@Column
     private String autoApproveScope;
-    @Column
+    //@Column
     private String additionalInformation;
 
     @Override

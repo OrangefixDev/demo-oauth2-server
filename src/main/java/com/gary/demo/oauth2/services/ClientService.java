@@ -1,6 +1,6 @@
 package com.gary.demo.oauth2.services;
 
-import com.gary.demo.oauth2.repository.ClientDao;
+import com.gary.demo.oauth2.repository.ClientMongoDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -17,7 +17,7 @@ import java.util.Optional;
 public class ClientService implements ClientDetailsService {
 
     @Autowired
-    private ClientDao clientDao;
+    private ClientMongoDao clientDao;
 
     @Override
     public ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {

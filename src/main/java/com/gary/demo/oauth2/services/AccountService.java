@@ -1,7 +1,9 @@
 package com.gary.demo.oauth2.services;
 
-import com.gary.demo.oauth2.repository.AccountDao;
+import com.gary.demo.oauth2.model.AccountResponse;
+import com.gary.demo.oauth2.repository.AccountMongoDao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,13 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.security.auth.login.AccountException;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class AccountService implements UserDetailsService {
 
     @Autowired
-    private AccountDao accountDao;
+    private AccountMongoDao accountDao;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -36,57 +39,88 @@ public class AccountService implements UserDetailsService {
         }
     }
 
-    public com.gary.demo.oauth2.model.Account findAccountByUsername(String username) throws UsernameNotFoundException {
+    public AccountResponse findAccountByUsername(String username) throws UsernameNotFoundException {
         Optional<com.gary.demo.oauth2.entity.Account> accountEntity = accountDao.findByUsername(username);
         if (accountEntity.isPresent()) {
-            return convertToAccountDto(accountEntity.get());
+            return new AccountResponse(HttpStatus.OK, "Successful", convertToAccountDto(accountEntity.get()));
         } else {
             throw new UsernameNotFoundException(String.format("Username[%s] not found", username));
         }
 
     }
 
-    public com.gary.demo.oauth2.model.Account registerUser(com.gary.demo.oauth2.model.Account accountDto) throws AccountException {
+    public AccountResponse registerUser(com.gary.demo.oauth2.model.Account accountDto){
         if (accountDao.countByUsername(accountDto.getUsername() ) == 0) {
             com.gary.demo.oauth2.entity.Account accountEntity = convertToAccountEntity(accountDto);
             accountEntity.setPassword(passwordEncoder.encode(StringUtils.isEmpty(accountDto.getPassword())?defaultPassword:accountDto.getPassword()));
             //grant user access by default
             accountEntity.grantAuthority("ROLE_USER");
-            return convertToAccountDto(accountDao.save(accountEntity));
+            try{
+                return new AccountResponse(HttpStatus.CREATED, "Created", convertToAccountDto(accountDao.save(accountEntity)));
+            }
+            catch(Exception e){
+                return  new AccountResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create account in database", accountDto);
+            }
         } else {
-            throw new AccountException(String.format("Username[%s] already taken.", accountDto.getUsername()));
+            return  new AccountResponse(HttpStatus.BAD_REQUEST, "Username[%s] already taken.", accountDto);
         }
     }
 
-    public com.gary.demo.oauth2.model.Account registerAdmin(com.gary.demo.oauth2.model.Account accountDto) throws AccountException {
+    public AccountResponse registerAdmin(com.gary.demo.oauth2.model.Account accountDto){
         if (accountDao.countByUsername(accountDto.getUsername() ) == 0) {
             com.gary.demo.oauth2.entity.Account accountEntity = convertToAccountEntity(accountDto);
             accountEntity.setPassword(passwordEncoder.encode(StringUtils.isEmpty(accountDto.getPassword())?defaultPassword:accountDto.getPassword()));
             //grant user access by default
             accountEntity.grantAuthority("ROLE_ADMIN");
-            return convertToAccountDto(accountDao.save(accountEntity));
+            try{
+                return new AccountResponse(HttpStatus.CREATED, "Created", convertToAccountDto(accountDao.save(accountEntity)));
+            }
+            catch(Exception e){
+                return  new AccountResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create account in database", accountDto);
+            }
         } else {
-            throw new AccountException(String.format("Username[%s] already taken.", accountDto.getUsername()));
+            return  new AccountResponse(HttpStatus.BAD_REQUEST, "Username[%s] already taken.", accountDto);
         }
     }
+
+    @Transactional
+    public AccountResponse updateAccountRoles(com.gary.demo.oauth2.model.Account accountDto){
+
+        Optional<com.gary.demo.oauth2.entity.Account> accountEntityOptional = accountDao.findByUsername(accountDto.getUsername());
+        com.gary.demo.oauth2.entity.Account accountEntity = accountEntityOptional.get();
+        if (accountEntity != null && accountDto.getRoles() != null && accountDto.getRoles().size() >0) {
+            accountEntity.setRoles(accountDto.getRoles());
+
+            try{
+                return new AccountResponse(HttpStatus.OK, "Updated", convertToAccountDto(accountDao.save(accountEntity)));
+            }
+            catch(Exception e){
+                return  new AccountResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to update account in database", accountDto);
+            }
+        } else {
+            return  new AccountResponse(HttpStatus.BAD_REQUEST, "Username[%s] does not exist or missing account role values", accountDto);
+        }
+
+    }
+
     public com.gary.demo.oauth2.model.Account registerUser(com.gary.demo.oauth2.entity.Account accountEntity) throws AccountException {
         com.gary.demo.oauth2.model.Account accountDto = convertToAccountDto(accountEntity);
         accountDto.setPassword(accountEntity.getPassword());
-        return registerUser(accountDto);
+        return registerUser(accountDto).getAccount();
     }
 
     public com.gary.demo.oauth2.model.Account registerAdmin(com.gary.demo.oauth2.entity.Account accountEntity) throws AccountException {
         com.gary.demo.oauth2.model.Account accountDto = convertToAccountDto(accountEntity);
         accountDto.setPassword(accountEntity.getPassword());
-        return registerAdmin(accountDto);
+        return registerAdmin(accountDto).getAccount();
     }
 
     @Transactional
-    public void removeAuthenticatedAccount() throws UsernameNotFoundException {
+    public AccountResponse removeAuthenticatedAccount() throws UsernameNotFoundException {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        com.gary.demo.oauth2.model.Account accountDto = findAccountByUsername(username);
-        accountDao.deleteAccountById(accountDto.getId());
-
+        com.gary.demo.oauth2.model.Account accountDto = findAccountByUsername(username).getAccount();
+        accountDao.deleteAccountByUsername(accountDto.getUsername());
+        return new AccountResponse(HttpStatus.OK, "User Deleted");
     }
 
 
@@ -96,7 +130,6 @@ public class AccountService implements UserDetailsService {
         accountDto.setFirstName(accountEntity.getFirstName());
         accountDto.setLastName(accountEntity.getLastName());
         accountDto.setUsername(accountEntity.getUsername());
-        accountDto.setId(accountEntity.getId());
         //not returning password
         return accountDto;
     }
