@@ -9,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -23,6 +24,8 @@ import java.util.HashSet;
 
 @SpringBootApplication
 @EnableMongoRepositories(basePackages = { "com.gary.demo.oauth2.repository"})
+@PropertySource(value = {"classpath:/application.properties"})
+@PropertySource(value = {"file:${app.config.path}/application.properties"}, ignoreResourceNotFound = true)
 public class DemoOauth2Application {
 
 	public static void main(String[] args) {
@@ -81,11 +84,7 @@ public class DemoOauth2Application {
 			client.setAccessTokenValiditySeconds(new Integer("7200"));
 			client.setRefreshTokenValiditySeconds(new Integer("7200"));
 			client.setClientSecret("123password");
-			try {
-				clientService.register(client);
-			} catch (CredentialException e) {
-				e.printStackTrace();
-			}
+			clientService.register(client);
 		};
 	}
 }

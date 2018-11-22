@@ -46,7 +46,8 @@ public class ResourceConfig extends ResourceServerConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
                 .antMatchers(HttpMethod.DELETE).access("hasAnyRole('ADMIN')")
-                .antMatchers("/v1/auth/user").hasAnyRole("USER", "ADMIN")
+                //.antMatchers("/v1/auth/user").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/v1/auth/user").access("hasAnyRole('USER', 'ADMIN')")
                 .antMatchers("/v1/auth/user/register").permitAll()
                 .antMatchers("/v1/auth/client").hasRole("ADMIN")
                 .antMatchers("/v1/auth/client/register").hasRole("ADMIN");

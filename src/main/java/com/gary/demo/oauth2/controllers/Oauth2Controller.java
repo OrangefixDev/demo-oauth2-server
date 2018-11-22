@@ -5,6 +5,7 @@ import com.gary.demo.oauth2.entity.RestResponse;
 import com.gary.demo.oauth2.model.Account;
 import com.gary.demo.oauth2.model.AccountResponse;
 import com.gary.demo.oauth2.model.Client;
+import com.gary.demo.oauth2.model.ClientResponse;
 import com.gary.demo.oauth2.services.AccountService;
 import com.gary.demo.oauth2.services.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +65,9 @@ public class Oauth2Controller {
      * @return 200 if successful
      */
     @PreAuthorize("hasRole('ADMIN')")
-    @RequestMapping(value = ENDPOINT_V1_USER + "/updateUserRoles", method= RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    public AccountResponse updateUserRoles(@RequestBody Account account, HttpServletResponse response) {
-        AccountResponse accountResponse =  accountService.updateAccountRoles(account);
+    @RequestMapping(value = ENDPOINT_V1_USER + "/updateUser", method= RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public AccountResponse updateUser(@RequestBody Account account, HttpServletResponse response) {
+        AccountResponse accountResponse =  accountService.updateAccount(account);
         response.setStatus(accountResponse.getResponseStatus().value());
         return accountResponse;
     }
@@ -87,16 +88,13 @@ public class Oauth2Controller {
      * Get client detail
      * @return client Object
      */
-    @GetMapping(path = ENDPOINT_V1_CLIENT, produces = "application/json" )
-    public ResponseEntity<?> client() {
+    @RequestMapping(value = ENDPOINT_V1_CLIENT, method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ClientResponse client(HttpServletResponse response) {
         Authentication a = SecurityContextHolder.getContext().getAuthentication();
         String clientId = ((OAuth2Authentication) a).getOAuth2Request().getClientId();
-        try {
-            return new ResponseEntity<Object>(clientService.findClientByclientId(clientId), HttpStatus.OK);
-        } catch (CredentialException e) {
-            e.printStackTrace();
-            return new ResponseEntity<RestError>(new RestError(e.getMessage()),HttpStatus.BAD_REQUEST );
-        }
+        ClientResponse clientResponse = clientService.findClientByclientId(clientId);
+        response.setStatus(clientResponse.getResponseStatus().value());
+        return clientResponse;
     }
 
 
@@ -105,17 +103,24 @@ public class Oauth2Controller {
      * @param client
      * @return client object
      */
-    @PostMapping(path = ENDPOINT_V1_CLIENT + "/register", produces = "application/json")
-    public ResponseEntity<?> register(@RequestBody Client client) {
-        try {
-
-            return new ResponseEntity<Object>(
-                    clientService.register(client), HttpStatus.OK);
-        } catch (CredentialException e) {
-            e.printStackTrace();
-            return new ResponseEntity<RestError>(new RestError(e.getMessage()),HttpStatus.BAD_REQUEST );
-        }
+    @RequestMapping(value = ENDPOINT_V1_CLIENT + "/register", method= RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ClientResponse register(@RequestBody Client client, HttpServletResponse response) {
+        ClientResponse clientResponse = clientService.register(client);
+        response.setStatus(clientResponse.getResponseStatus().value());
+        return clientResponse;
     }
 
+
+    /**
+     * update a client.  Only admin can access this endpoint
+     * @param client
+     * @return client object
+     */
+    @RequestMapping(value = ENDPOINT_V1_CLIENT + "/updateClient", method= RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ClientResponse updateClient(@RequestBody Client client, HttpServletResponse response) {
+        ClientResponse clientResponse = clientService.updateClient(client);
+        response.setStatus(clientResponse.getResponseStatus().value());
+        return clientResponse;
+    }
 
 }

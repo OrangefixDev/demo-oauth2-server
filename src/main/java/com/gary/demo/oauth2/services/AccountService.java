@@ -39,12 +39,12 @@ public class AccountService implements UserDetailsService {
         }
     }
 
-    public AccountResponse findAccountByUsername(String username) throws UsernameNotFoundException {
+    public AccountResponse findAccountByUsername(String username) {
         Optional<com.gary.demo.oauth2.entity.Account> accountEntity = accountDao.findByUsername(username);
         if (accountEntity.isPresent()) {
             return new AccountResponse(HttpStatus.OK, "Successful", convertToAccountDto(accountEntity.get()));
         } else {
-            throw new UsernameNotFoundException(String.format("Username[%s] not found", username));
+            return new AccountResponse(HttpStatus.NOT_FOUND, "User name not found");
         }
 
     }
@@ -62,7 +62,7 @@ public class AccountService implements UserDetailsService {
                 return  new AccountResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create account in database", accountDto);
             }
         } else {
-            return  new AccountResponse(HttpStatus.BAD_REQUEST, "Username[%s] already taken.", accountDto);
+            return  new AccountResponse(HttpStatus.BAD_REQUEST, "Username already taken.", accountDto);
         }
     }
 
@@ -79,40 +79,88 @@ public class AccountService implements UserDetailsService {
                 return  new AccountResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create account in database", accountDto);
             }
         } else {
-            return  new AccountResponse(HttpStatus.BAD_REQUEST, "Username[%s] already taken.", accountDto);
+            return  new AccountResponse(HttpStatus.BAD_REQUEST, "Username already taken.", accountDto);
         }
     }
 
     @Transactional
-    public AccountResponse updateAccountRoles(com.gary.demo.oauth2.model.Account accountDto){
+    public AccountResponse updateAccount(com.gary.demo.oauth2.model.Account accountDto){
 
         Optional<com.gary.demo.oauth2.entity.Account> accountEntityOptional = accountDao.findByUsername(accountDto.getUsername());
         com.gary.demo.oauth2.entity.Account accountEntity = accountEntityOptional.get();
-        if (accountEntity != null && accountDto.getRoles() != null && accountDto.getRoles().size() >0) {
-            accountEntity.setRoles(accountDto.getRoles());
-
+        if (accountEntity != null) {
+            boolean hasChange = false;
+            if(accountDto.getRoles() != null && accountDto.getRoles().size() >0) {
+                accountEntity.setRoles(accountDto.getRoles());
+                hasChange = true;
+            }
+            if(!StringUtils.isEmpty(accountDto.getEmail())){
+                accountEntity.setEmail(accountDto.getEmail());
+                hasChange = true;
+            }
+            if(!StringUtils.isEmpty(accountDto.getFirstName())){
+                accountEntity.setFirstName(accountDto.getFirstName());
+                hasChange = true;
+            }
+            if(!StringUtils.isEmpty(accountDto.getLastName())){
+                accountEntity.setLastName(accountDto.getLastName());
+                hasChange = true;
+            }
+            if(!StringUtils.isEmpty(accountDto.getPassword())){
+                accountEntity.setPassword(passwordEncoder.encode(accountDto.getPassword()));
+                hasChange = true;
+            }
             try{
-                return new AccountResponse(HttpStatus.OK, "Updated", convertToAccountDto(accountDao.save(accountEntity)));
+                if(hasChange) {
+                    return new AccountResponse(HttpStatus.OK, "Updated", convertToAccountDto(accountDao.save(accountEntity)));
+                }
+                else{
+                    return new AccountResponse(HttpStatus.BAD_REQUEST, "No information is provided for the update");
+                }
             }
             catch(Exception e){
                 return  new AccountResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to update account in database", accountDto);
             }
         } else {
-            return  new AccountResponse(HttpStatus.BAD_REQUEST, "Username[%s] does not exist or missing account role values", accountDto);
+            return  new AccountResponse(HttpStatus.BAD_REQUEST, "Username does not exist", accountDto);
         }
 
     }
 
+    /**
+     * The method is used internally in the application
+     * @param accountEntity
+     * @return
+     * @throws AccountException
+     */
     public com.gary.demo.oauth2.model.Account registerUser(com.gary.demo.oauth2.entity.Account accountEntity) throws AccountException {
         com.gary.demo.oauth2.model.Account accountDto = convertToAccountDto(accountEntity);
         accountDto.setPassword(accountEntity.getPassword());
-        return registerUser(accountDto).getAccount();
+        AccountResponse accountResponse = registerUser(accountDto);
+        if(accountResponse.getResponseStatus().equals(HttpStatus.CREATED)){
+            return accountResponse.getAccount();
+        }
+        else{
+            return null;
+        }
     }
 
+    /**
+     * The method is used internally in the applicaiton
+     * @param accountEntity
+     * @return
+     * @throws AccountException
+     */
     public com.gary.demo.oauth2.model.Account registerAdmin(com.gary.demo.oauth2.entity.Account accountEntity) throws AccountException {
         com.gary.demo.oauth2.model.Account accountDto = convertToAccountDto(accountEntity);
         accountDto.setPassword(accountEntity.getPassword());
-        return registerAdmin(accountDto).getAccount();
+        AccountResponse accountResponse = registerAdmin(accountDto);
+        if(accountResponse.getResponseStatus().equals(HttpStatus.CREATED)){
+            return accountResponse.getAccount();
+        }
+        else{
+            return null;
+        }
     }
 
     @Transactional
@@ -130,6 +178,7 @@ public class AccountService implements UserDetailsService {
         accountDto.setFirstName(accountEntity.getFirstName());
         accountDto.setLastName(accountEntity.getLastName());
         accountDto.setUsername(accountEntity.getUsername());
+        accountDto.setRoles(accountEntity.getRoles());
         //not returning password
         return accountDto;
     }
